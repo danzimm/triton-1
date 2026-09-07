@@ -1060,24 +1060,20 @@ class TritonSemantic(Generic[TensorTy]):
         ptr: TensorTy,
         mask: Optional[TensorTy],
         other: Optional[TensorTy],
-        cache_modifier: str,
-        eviction_policy: str,
+        cache_policy,
         is_volatile: bool,
         latency: Optional[int],
     ) -> TensorTy:
-        cache = self._str_to_load_cache_modifier(cache_modifier)
-        eviction = self._str_to_eviction_policy(eviction_policy)
+        cache_policy = cache_policy._to_ir(self.builder)
         # pre-check
         dst_ty, ptr, mask, other, is_bool = self._prepare_load(ptr, mask, other)
         # Build IR
         if mask is None:
-            x = tl.tensor(self.builder.create_load(ptr.handle, cache, eviction, is_volatile), dst_ty)
+            x = tl.tensor(self.builder.create_load(ptr.handle, cache_policy, is_volatile), dst_ty)
         else:
             x = tl.tensor(
-                self.builder.create_masked_load(ptr.handle, mask.handle, other.handle if other else None, cache,
-                                                eviction, is_volatile),
-                dst_ty,
-            )
+                self.builder.create_masked_load(ptr.handle, mask.handle, other.handle if other else None, cache_policy,
+                                                is_volatile), dst_ty)
         if is_bool:
             x = self.cast(x, tl.int1)
         if latency is not None:
@@ -1091,8 +1087,8 @@ class TritonSemantic(Generic[TensorTy]):
         handle = self.builder.create_reinterpret_tensor_descriptor(desc_ptr.handle, block_ty.to_ir(self.builder))
         return tl.tensor_descriptor_base(handle, block_ty)
 
-    def descriptor_load(self, desc: tl.tensor_descriptor_base, offsets, cache_modifier: str, eviction_policy: str,
-                        latency: Optional[int], multicast: Optional[bool] = None, attrs=None) -> TensorTy:
+    def descriptor_load(self, desc: tl.tensor_descriptor_base, offsets, cache_policy, latency: Optional[int],
+                        multicast: Optional[bool] = None, attrs=None) -> TensorTy:
         assert isinstance(desc, tl.tensor_descriptor_base), \
             f"expected a tensor descriptor, got {type(desc).__name__}"
         ndim = len(desc.block_shape)
@@ -1103,13 +1099,7 @@ class TritonSemantic(Generic[TensorTy]):
             multicast = getattr(self.builder.options, "multicast", False)
         if not isinstance(multicast, bool):
             raise TypeError(f"multicast must be a constexpr bool or None, got {multicast}")
-        x = self.builder.create_descriptor_load(
-            desc.handle,
-            offsets,
-            self._str_to_load_cache_modifier(cache_modifier),
-            self._str_to_eviction_policy(eviction_policy),
-            multicast,
-        )
+        x = self.builder.create_descriptor_load(desc.handle, offsets, cache_policy._to_ir(self.builder), multicast)
         if latency is not None:
             if not isinstance(latency, int) or latency < 0:
                 raise TypeError(
@@ -1304,10 +1294,8 @@ class TritonSemantic(Generic[TensorTy]):
             raise ValueError(f"Expected pointer argument to have shape {ptr.shape} but got {ptr_shape}")
         return ptr, val, mask
 
-    def store(self, ptr: TensorTy, val: TensorTy, mask: Optional[TensorTy], cache_modifier: str,
-              eviction_policy: str) -> TensorTy:
-        cache = self._str_to_store_cache_modifier(cache_modifier)
-        eviction = self._str_to_eviction_policy(eviction_policy)
+    def store(self, ptr: TensorTy, val: TensorTy, mask: Optional[TensorTy], cache_policy) -> TensorTy:
+        cache_policy = cache_policy._to_ir(self.builder)
         if ptr.type.is_const() or ptr.type.scalar.is_const():
             raise ValueError("Cannot store to a constant pointer")
 
@@ -1340,11 +1328,10 @@ class TritonSemantic(Generic[TensorTy]):
 
         # Build IR
         if mask is None:
-            return self.tensor(self.builder.create_store(ptr.handle, val.handle, cache, eviction), tl.void)
+            return self.tensor(self.builder.create_store(ptr.handle, val.handle, cache_policy), tl.void)
         if not mask.type.scalar.is_bool():
             raise ValueError("Mask must have boolean scalar type")
-        return self.tensor(self.builder.create_masked_store(ptr.handle, val.handle, mask.handle, cache, eviction),
-                           tl.void)
+        return self.tensor(self.builder.create_masked_store(ptr.handle, val.handle, mask.handle, cache_policy), tl.void)
 
     #########
     # atomic
