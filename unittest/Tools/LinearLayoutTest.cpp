@@ -609,7 +609,7 @@ TEST_F(LinearLayoutTest, InvertAndComposeBlockLocal) {
 
   EXPECT_FALSE(
       regLayout.invertAndCompose(memLayout).isIdentityOnOutDim(S("block")));
-  auto local = invertAndComposeBlockLocal(memLayout, regLayout);
+  auto local = invertAndComposeLocal(memLayout, regLayout, {S("block")});
   auto expected =
       LinearLayout({{S("register"), {}},
                     {S("lane"), {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}},
@@ -632,8 +632,8 @@ TEST_F(LinearLayoutTest, InvertAndComposeBlockLocal) {
                    {S("dim")});
   EXPECT_FALSE(partiallyDistributedReg.invertAndCompose(partiallyBroadcastMem)
                    .isIdentityOnOutDim(S("block")));
-  auto partiallyLocal = invertAndComposeBlockLocal(partiallyBroadcastMem,
-                                                   partiallyDistributedReg);
+  auto partiallyLocal = invertAndComposeLocal(
+      partiallyBroadcastMem, partiallyDistributedReg, {S("block")});
   auto partiallyExpected =
       LinearLayout({{S("register"), {}},
                     {S("lane"), {{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}},
@@ -653,7 +653,7 @@ TEST_F(LinearLayoutTest, InvertAndComposeBlockLocal) {
                                      {S("warp"), {}},
                                      {S("block"), {{1}}}},
                                     {S("dim")});
-  EXPECT_EQ(invertAndComposeBlockLocal(partitionedMem, transposedReg),
+  EXPECT_EQ(invertAndComposeLocal(partitionedMem, transposedReg, {S("block")}),
             transposedReg.invertAndCompose(partitionedMem));
 }
 

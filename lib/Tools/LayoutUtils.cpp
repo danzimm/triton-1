@@ -38,39 +38,43 @@ bool squareSublayoutIsIdentity(const LinearLayout &ll,
       ll, dimNames, [](int b, int32_t basis) { return basis == (1 << b); });
 }
 
-LinearLayout invertAndComposeBlockLocal(const LinearLayout &A,
-                                        const LinearLayout &B) {
-  assert(!B.getInDimNames().empty());
-  auto kBlock =
-      StringAttr::get(B.getInDimNames().begin()->getContext(), "block");
-  assert(A.hasInDim(kBlock) && B.hasInDim(kBlock));
-  assert(A.getInDimSize(kBlock) <= B.getInDimSize(kBlock));
+LinearLayout invertAndComposeLocal(const LinearLayout &A, const LinearLayout &B,
+                                   ArrayRef<StringAttr> localDims) {
+  for (StringAttr dim : localDims) {
+    assert(A.hasInDim(dim) && B.hasInDim(dim));
+    assert(A.getInDimSize(dim) <= B.getInDimSize(dim));
+  }
 
+  // Zero-extend A's bases where it is smaller than B along a local dim, so
+  // the composition below covers B's full local range.
   auto localA = A;
-  if (A.getInDimSize(kBlock) < B.getInDimSize(kBlock)) {
+  {
     auto bases = A.getBases();
-    bases[kBlock].resize(B.getBases().at(kBlock).size(),
-                         std::vector<int32_t>(A.getNumOutDims(), 0));
-    localA = LinearLayout(std::move(bases), A.getOutDims(),
-                          /*requireSurjective=*/false);
+    bool extended = false;
+    for (StringAttr dim : localDims) {
+      if (A.getInDimSize(dim) < B.getInDimSize(dim)) {
+        bases[dim].resize(B.getBases().at(dim).size(),
+                          std::vector<int32_t>(A.getNumOutDims(), 0));
+        extended = true;
+      }
+    }
+    if (extended)
+      localA = LinearLayout(std::move(bases), A.getOutDims(),
+                            /*requireSurjective=*/false);
   }
   auto cvt = B.invertAndCompose(localA);
-
-  // A zero block basis does not affect A's outputs, so force that output
-  // coordinate to equal the corresponding input block bit. This does not
-  // change the composition.
   auto bases = cvt.getBases();
-  int blockOutIdx = cvt.getOutDimIndex(kBlock);
-  uint64_t nonZeroBlockBases = getInputBasisMask(
-      localA, kBlock, llvm::to_vector(localA.getOutDimNames()));
-  for (unsigned i = 0; i < localA.getInDimSizeLog2(kBlock); ++i) {
-    if (nonZeroBlockBases & (uint64_t{1} << i))
-      continue;
-    int blockBit = 1 << i;
+  for (StringAttr dim : localDims) {
+    // A zero source basis leaves its output coordinate free. Choose the
+    // corresponding input bit to keep the replicated value local.
+    int outIdx = cvt.getOutDimIndex(dim);
+    uint64_t nonZeroBases = getInputBasisMask(
+        localA, dim, llvm::to_vector(localA.getOutDimNames()));
     for (auto &inDimBases : llvm::make_second_range(bases))
       for (auto &basis : inDimBases)
-        basis[blockOutIdx] &= ~blockBit;
-    bases[kBlock][i][blockOutIdx] |= blockBit;
+        basis[outIdx] &= nonZeroBases;
+    for (auto [i, basis] : llvm::enumerate(bases[dim]))
+      basis[outIdx] |= (uint64_t{1} << i) & ~nonZeroBases;
   }
   return LinearLayout(std::move(bases), cvt.getOutDims(),
                       /*requireSurjective=*/false);

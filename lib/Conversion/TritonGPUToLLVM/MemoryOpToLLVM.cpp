@@ -64,7 +64,8 @@ LogicalResult lowerLocalStore(
   auto [physicalRegLayout, sharedLayout] =
       getPhysicalLayouts(regLayout, memDescTy);
   regLayout = std::move(physicalRegLayout);
-  auto cvt = invertAndComposeBlockLocal(sharedLayout, regLayout);
+  auto kBlock = str_attr("block");
+  auto cvt = invertAndComposeLocal(sharedLayout, regLayout, {kBlock});
   lowerLocalLdSt(loc, ctx, cvt, inVals, llvmElemTy, memDescTy, smemObj,
                  rewriter, targetInfo, nullptr, clusterCTARank, barrierPtr);
 
@@ -198,7 +199,8 @@ public:
     auto [physicalRegLayout, sharedLayout] =
         getPhysicalLayouts(regLayout, memDescTy);
     regLayout = std::move(physicalRegLayout);
-    auto cvt = invertAndComposeBlockLocal(sharedLayout, regLayout);
+    auto kBlock = str_attr("block");
+    auto cvt = invertAndComposeLocal(sharedLayout, regLayout, {kBlock});
 
     std::optional<std::pair<Value, Value>> distributedCoordinates;
     if (auto group = op->getAttrOfType<IntegerAttr>(
