@@ -258,6 +258,33 @@ FailureOr<Value> createBufferStateMask(ImplicitLocOpBuilder &b,
   return result;
 }
 
+Value createSingleBufferStateIndex(ImplicitLocOpBuilder &b,
+                                   const BufferStateCandidates &candidates,
+                                   ArrayRef<Value> predicates) {
+  if (candidates.unknown)
+    return {};
+
+  // Every candidate contains its physical base atom, so one-hot candidates
+  // sharing a runtime base select the same lane even with different CTA masks.
+  for (const BufferStateCandidate &candidate : candidates.cases) {
+    if (candidate.mask.count() != 1)
+      return {};
+  }
+
+  if (candidates.cases.size() == 1)
+    return arith::ConstantIntOp::create(
+        b, candidates.cases.front().mask.find_first(), 32);
+
+  assert(predicates.size() == candidates.cases.size());
+  Value index = arith::ConstantIntOp::create(b, 0, 32);
+  for (auto [candidate, predicate] : llvm::zip(candidates.cases, predicates)) {
+    Value lane =
+        arith::ConstantIntOp::create(b, candidate.mask.find_first(), 32);
+    index = arith::SelectOp::create(b, predicate, lane, index);
+  }
+  return index;
+}
+
 bool shouldInitializeAllocations() {
   std::string envValue = tt::tools::getStrEnv("TRITON_CONSAN_INIT_ALLOCATIONS");
   if (envValue.empty())
@@ -1252,6 +1279,7 @@ private:
     Value defaultEffectCTAs = getMemEffectCTAs(b, op);
     struct MaterializedEffect {
       Value bufferMask;
+      Value bufferIndex;
       Value effectCTAs;
       Value barrierCTAs;
       MemType memType;
@@ -1318,6 +1346,8 @@ private:
       if (failed(stateMask))
         return failure();
       materialized.bufferMask = *stateMask;
+      materialized.bufferIndex =
+          createSingleBufferStateIndex(b, candidates, predicates);
 
       if (candidates.unknown) {
         materialized.effectCTAs = allCTAsMask(b);
@@ -1446,7 +1476,7 @@ private:
           funcBuilder.createSetReadVisibilityCall(
               b, bufferMask, thread,
               getThreadPeersMask(thread, auxData.threadLayout), pred, memType,
-              op, effectCTAs);
+              op, effectCTAs, materialized.bufferIndex);
         }
         if (opInfo->trackingKind ==
             MemEffectsOpInfo::TrackingKind::CommitCount) {
@@ -1501,7 +1531,7 @@ private:
         funcBuilder.createSetReadVisibilityCall(
             b, completionBufferMask, thread,
             getThreadPeersMask(thread, auxData.threadLayout), combinedPred,
-            MemType::SHARED_MEM, op, recipientCTAs);
+            MemType::SHARED_MEM, op, recipientCTAs, completion->bufferIndex);
       }
       if (barrierInfo.count == 0 && barrierInfo.txCount == 0)
         funcBuilder.createVerifyBarrierInitializedCall(b, barrier, combinedPred,
