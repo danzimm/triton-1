@@ -496,6 +496,7 @@ AuxDataMap::populateAndPassToWarpSpecialize(ModuleOp module, FuncOp entryPoint,
   threadLayout = getThreadLayout(entryPoint, hooks);
   entryPoint.walk(
       [&](AsyncCopyMbarrierArriveOp) { hasAsyncCopyMbarriers = true; });
+  int frontierBitWidth = threadLayout.totalNumThreads <= 32 ? 32 : 64;
   hasAsyncProxyFenceTracking =
       hooks.needsAsyncProxyFenceTracking(module) &&
       bufferStatePlans[(int)MemType::SHARED_MEM].numLanes != 0;
@@ -544,8 +545,8 @@ AuxDataMap::populateAndPassToWarpSpecialize(ModuleOp module, FuncOp entryPoint,
     }
 
     writeVisibility[iMemType].insert(
-        entryRegion,
-        createZeroInitStateTensor(b, {numCTAs, numBufs, numCTAs}, 64, fb));
+        entryRegion, createZeroInitStateTensor(b, {numCTAs, numBufs, numCTAs},
+                                               frontierBitWidth, fb));
     passValueToWarpSpecialize(writeVisibility[iMemType].at(entryRegion),
                               writeVisibility[iMemType]);
     readVisibility[iMemType].insert(
@@ -553,7 +554,7 @@ AuxDataMap::populateAndPassToWarpSpecialize(ModuleOp module, FuncOp entryPoint,
         createZeroInitStateTensor(
             b,
             {numCTAs, numBufs, numCTAs, threadLayout.numThreadSlots, numCTAs},
-            64, fb));
+            frontierBitWidth, fb));
     passValueToWarpSpecialize(readVisibility[iMemType].at(entryRegion),
                               readVisibility[iMemType]);
     if (memType == MemType::SHARED_MEM && hasAsyncProxyFenceTracking) {
@@ -611,8 +612,8 @@ AuxDataMap::populateAndPassToWarpSpecialize(ModuleOp module, FuncOp entryPoint,
         readTracking[iMemType].insert(
             entryRegion,
             createZeroInitStateTensor(
-                b, {numCTAs, numBufs, numCTAs, numBarriers, numCTAs, 2}, 64,
-                fb));
+                b, {numCTAs, numBufs, numCTAs, numBarriers, numCTAs, 2},
+                frontierBitWidth, fb));
         passValueToWarpSpecialize(readTracking[iMemType].at(entryRegion),
                                   readTracking[iMemType]);
       }
