@@ -170,8 +170,7 @@ LogicalResult ScalarizeOpConversion<triton::StoreOp>::scalarizeWithLoop(
   auto ptrs = storeOp.getPtr();
   auto mask = storeOp.getMask();
   auto vals = storeOp.getValue();
-  auto cache = storeOp.getCache();
-  auto evict = storeOp.getEvict();
+  auto cachePolicy = storeOp.getCachePolicyAttr();
 
   auto tensorTy = cast<RankedTensorType>(vals.getType());
 
@@ -213,13 +212,14 @@ LogicalResult ScalarizeOpConversion<triton::StoreOp>::scalarizeWithLoop(
   if (!mask) {
     // Regular store case.
     auto store_op = triton::StoreOp::create(rewriter, loc, scalarPtr, scalarVal,
-                                            cache, evict);
+                                            Value(), cachePolicy, UnitAttr());
   } else {
     // Conditional store case
     scf::IfOp::create(rewriter, loc, scalarMask,
                       [&](OpBuilder &builder, Location loc) {
                         triton::StoreOp::create(builder, loc, scalarPtr,
-                                                scalarVal, cache, evict);
+                                                scalarVal, Value(), cachePolicy,
+                                                UnitAttr());
                         scf::YieldOp::create(builder, loc);
                       });
   }
@@ -249,8 +249,7 @@ LogicalResult ScalarizeOpConversion<triton::LoadOp>::scalarizeWithLoop(
   auto ptrs = loadOp.getPtr();
   auto mask = loadOp.getMask();
   auto other = loadOp.getOther();
-  auto cache = loadOp.getCache();
-  auto evict = loadOp.getEvict();
+  auto cachePolicy = loadOp.getCachePolicyAttr();
   auto isVolatile = loadOp.getIsVolatile();
 
   // Create some reused constants.
@@ -313,16 +312,16 @@ LogicalResult ScalarizeOpConversion<triton::LoadOp>::scalarizeWithLoop(
 
   if (!mask) {
     // Regular load case.
-    Value val = triton::LoadOp::create(rewriter, loc, scalarPtr, cache, evict,
-                                       isVolatile);
+    Value val = triton::LoadOp::create(rewriter, loc, scalarPtr, Value(),
+                                       Value(), cachePolicy, isVolatile);
     memref::StoreOp::create(rewriter, loc, val, resMemRef, ivs);
   } else {
     // Conditional load case
     scf::IfOp::create(
         rewriter, loc, scalarMask,
         [&](OpBuilder &builder, Location loc) {
-          Value val = triton::LoadOp::create(builder, loc, scalarPtr, cache,
-                                             evict, isVolatile);
+          Value val = triton::LoadOp::create(builder, loc, scalarPtr, Value(),
+                                             Value(), cachePolicy, isVolatile);
           memref::StoreOp::create(builder, loc, val, resMemRef, ivs);
           scf::YieldOp::create(builder, loc);
         },
