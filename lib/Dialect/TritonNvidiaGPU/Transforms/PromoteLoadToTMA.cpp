@@ -1617,8 +1617,8 @@ public:
       }
 
       auto newLoad = tt::DescriptorLoadOp::create(
-          builder, loc, descTileTy, descVal, indices, tt::CacheModifier::NONE,
-          tt::EvictionPolicy::NORMAL);
+          builder, loc, descTileTy, descVal, indices,
+          loadOp.getCachePolicyAttr());
 
       Value loaded = newLoad.getResult();
       if (!isIdentity) {
