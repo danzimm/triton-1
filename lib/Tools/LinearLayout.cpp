@@ -1566,13 +1566,12 @@ LinearLayout::tryInvertAndCompose(const LinearLayout &outer) const {
 
   // Upstream #11645: with the isIndependent rule, A and B may disagree on
   // identity dims, so the both-empty-or-both-nonempty assert is dropped.
-  bool isEmpty =
-      ANonIdentityInDims.empty() && BNonIdentityInDims.empty();
+  bool isEmpty = ANonIdentityInDims.empty() && BNonIdentityInDims.empty();
 
   LinearLayoutSolveResult solve =
       isEmpty ? LinearLayoutSolveResult{ModularSolveStatus::Success,
                                         LinearLayout::empty()}
-                : lstsq(AReduced, BReduced);
+              : lstsq(AReduced, BReduced);
   if (!solve.succeeded())
     return solve;
   LinearLayout ret = std::move(*solve.layout);

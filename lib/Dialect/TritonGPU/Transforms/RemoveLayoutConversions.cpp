@@ -1633,8 +1633,7 @@ void LayoutPropagation::resolveConflicts() {
       continue;
     }
     Attribute encoding = *info.encodings.begin();
-    bool isLoadOrStore =
-        op && isa<LoadOp, StoreOp, AtomicOpInterface>(op);
+    bool isLoadOrStore = op && isa<LoadOp, StoreOp, AtomicOpInterface>(op);
     if (op && isa<AtomicOpInterface>(op) && !axisInfoAnalysis)
       axisInfoAnalysis = std::make_unique<ModuleAxisInfoAnalysis>(
           funcOp->getParentOfType<ModuleOp>());

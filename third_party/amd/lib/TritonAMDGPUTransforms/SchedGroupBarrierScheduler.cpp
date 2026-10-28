@@ -170,7 +170,8 @@ static unsigned dsWriteCountOf(Operation *op) {
   LinearLayout cvt = LinearLayout::empty();
   StringAttr kBlock = StringAttr::get(op->getContext(), "block");
   if (triton::gpu::isPaddedEncoding(memTy.getEncoding())) {
-    cvt = triton::invertAndComposeLocal(triton::gpu::paddedLinearLayout(memTy), regLayout, {kBlock});
+    cvt = triton::invertAndComposeLocal(triton::gpu::paddedLinearLayout(memTy),
+                                        regLayout, {kBlock});
   } else {
     LinearLayout sharedLayout = triton::gpu::toLinearLayout(memTy);
     if (regLayout.isModular()) {

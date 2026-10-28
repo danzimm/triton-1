@@ -1616,9 +1616,9 @@ public:
         }
       }
 
-      auto newLoad = tt::DescriptorLoadOp::create(
-          builder, loc, descTileTy, descVal, indices,
-          loadOp.getCachePolicyAttr());
+      auto newLoad =
+          tt::DescriptorLoadOp::create(builder, loc, descTileTy, descVal,
+                                       indices, loadOp.getCachePolicyAttr());
 
       Value loaded = newLoad.getResult();
       if (!isIdentity) {

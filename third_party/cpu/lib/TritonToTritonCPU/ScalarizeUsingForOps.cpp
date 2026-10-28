@@ -215,13 +215,12 @@ LogicalResult ScalarizeOpConversion<triton::StoreOp>::scalarizeWithLoop(
                                             Value(), cachePolicy, UnitAttr());
   } else {
     // Conditional store case
-    scf::IfOp::create(rewriter, loc, scalarMask,
-                      [&](OpBuilder &builder, Location loc) {
-                        triton::StoreOp::create(builder, loc, scalarPtr,
-                                                scalarVal, Value(), cachePolicy,
-                                                UnitAttr());
-                        scf::YieldOp::create(builder, loc);
-                      });
+    scf::IfOp::create(
+        rewriter, loc, scalarMask, [&](OpBuilder &builder, Location loc) {
+          triton::StoreOp::create(builder, loc, scalarPtr, scalarVal, Value(),
+                                  cachePolicy, UnitAttr());
+          scf::YieldOp::create(builder, loc);
+        });
   }
 
   rewriter.eraseOp(storeOp);

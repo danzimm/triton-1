@@ -560,7 +560,8 @@ struct LoadOpConversion : public ConvertOpToLLVMPattern<triton::LoadOp>,
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
     if (op.getCachePolicyAttr())
-      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+      if (auto policyAttr =
+              dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
         evict = policyAttr.getEvictionPolicy();
     auto loc = op->getLoc();
     auto b = TritonLLVMOpBuilder(loc, rewriter);
@@ -672,7 +673,8 @@ struct BufferLoadOpConversion
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
     if (op.getCachePolicyAttr())
-      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+      if (auto policyAttr =
+              dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
         evict = policyAttr.getEvictionPolicy();
     auto loc = op->getLoc();
     auto b = TritonLLVMOpBuilder(loc, rewriter);
@@ -774,7 +776,8 @@ struct BufferLoadToLocalOpConversion
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
     if (op.getCachePolicyAttr())
-      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+      if (auto policyAttr =
+              dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
         evict = policyAttr.getEvictionPolicy();
     auto cacheMod = *cacheModifier;
     auto loc = op->getLoc();
@@ -909,8 +912,7 @@ struct BufferLoadToLocalOpConversion
 
         auto bufferLoadToLds = bufferEmitter.emitLoadToLds(
             vecTy, vecBytesVal, rsrcDesc, offsetElem, shmemAddr,
-            hasOther ? b.true_val() : maybeSwizzledMaskElem, cacheMod,
-            evict);
+            hasOther ? b.true_val() : maybeSwizzledMaskElem, cacheMod, evict);
         if (targetInfo.requiresAliasInfoForAsyncOps())
           AMD::addAsyncCopyAliasScope(bufferLoadToLds);
 
@@ -967,7 +969,8 @@ struct AsyncCopyGlobalToLocalOpConversion
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
     if (op.getCachePolicyAttr())
-      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+      if (auto policyAttr =
+              dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
         evict = policyAttr.getEvictionPolicy();
     auto loc = op.getLoc();
     auto b = TritonLLVMOpBuilder(loc, rewriter);
@@ -1070,8 +1073,7 @@ struct AsyncCopyGlobalToLocalOpConversion
             selectLdsAddressForPredicate(b, cond, shmemAddr);
 
         emitAsyncLoad(rewriter, loc, targetInfo, vecBits, srcElem,
-                      predicatedAddress, *cacheModifier, evict,
-                      multicastMask);
+                      predicatedAddress, *cacheModifier, evict, multicastMask);
       } else {
         // For architectures not supporting per lane LDS addresses we need to
         // emit a branch.
@@ -1183,7 +1185,8 @@ struct AsyncCopyLocalToGlobalOpConversion
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
     if (op.getCachePolicyAttr())
-      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+      if (auto policyAttr =
+              dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
         evict = policyAttr.getEvictionPolicy();
 
     // Only supported on GFX1250
@@ -1232,10 +1235,10 @@ struct AsyncCopyLocalToGlobalOpConversion
     auto [laneId, warpId] = getLaneAndWarpId(rewriter, loc);
     auto emitGlobalStoreLds =
         [this, &op, &b, threadPred, dstPtrTy, cacheModifier = *cacheModifier,
-         evict](
-            RewriterBase &rewriter, Location loc, ArrayRef<Value> storeValues,
-            Value shmemAddr, int startIdx, VectorType vecTy,
-            Value /*multicastMask*/) -> SmallVector<Value> {
+         evict](RewriterBase &rewriter, Location loc,
+                ArrayRef<Value> storeValues, Value shmemAddr, int startIdx,
+                VectorType vecTy,
+                Value /*multicastMask*/) -> SmallVector<Value> {
       auto [dstElem, maskElem, unused1, unused2] =
           unzipAsyncCopyValues(rewriter, loc, startIdx, storeValues, dstPtrTy,
                                i1_ty, false, vecTy.getNumElements());
@@ -1812,7 +1815,8 @@ struct StoreOpConversion : public ConvertOpToLLVMPattern<triton::StoreOp>,
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
     if (op.getCachePolicyAttr())
-      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+      if (auto policyAttr =
+              dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
         evict = policyAttr.getEvictionPolicy();
     Value ptr = op.getPtr();
     Value value = op.getValue();
@@ -2165,7 +2169,8 @@ struct BufferStoreOpConversion
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
     if (op.getCachePolicyAttr())
-      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+      if (auto policyAttr =
+              dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
         evict = policyAttr.getEvictionPolicy();
     auto loc = op->getLoc();
     auto b = TritonLLVMOpBuilder(loc, rewriter);

@@ -3155,7 +3155,8 @@ module attributes {"ttg.num-ctas" = 4 : i32, "ttg.num-warps" = 1 : i32, "ttg.thr
   // CHECK: %[[PC_NEW_PHASES:.*]] = arith.xori {{.*}}, %[[PC_DONE_WIDE]] : tensor<4x16xi64,
   // CHECK: %[[PC_COMPLETED:.*]] = arith.andi %[[PC_ZERO_COUNTS]], {{.*}} : tensor<4x16xi1,
   // CHECK: %[[PC_ANY_COMPLETED:.*]] = "tt.reduce"
-  // CHECK: cf.cond_br %[[PC_ANY_COMPLETED]],
+  // CHECK: %[[PC_ANY_COMPLETED_SCALAR:.*]] = "tt.reduce"(%[[PC_ANY_COMPLETED]])
+  // CHECK: cf.cond_br %[[PC_ANY_COMPLETED_SCALAR]],
   // CHECK: %[[PC_NEXT_PHASES:.*]] = arith.trunci %[[PC_NEW_PHASES]] : tensor<4x16xi64, {{.*}}> to tensor<4x16xi32,
   // Write tracking keeps Cbar/K in dimensions 2/3 and both phase banks.
   // CHECK: ttg.convert_layout %[[PC_COMPLETED]]

@@ -284,9 +284,8 @@ struct LoadOpConversion : public MemoryOpConversion<triton::LoadOp> {
     auto loadOne = [=, &rewriter](ArrayRef<int64_t> indices, Value dst) {
       Value ptr = vector::ExtractOp::create(rewriter, loc, ptrs, indices);
       ptr = IntToPtrOp::create(rewriter, loc, ptrTy, ptr);
-      Value val =
-          triton::LoadOp::create(rewriter, loc, ptr, Value(), Value(),
-                                   cachePolicy, isVolatile);
+      Value val = triton::LoadOp::create(rewriter, loc, ptr, Value(), Value(),
+                                         cachePolicy, isVolatile);
       return vector::InsertOp::create(rewriter, loc, val, dst, indices);
     };
 
@@ -452,7 +451,7 @@ struct StoreOpConversion : public MemoryOpConversion<triton::StoreOp> {
       ptr = IntToPtrOp::create(rewriter, loc, ptrTy, ptr);
       Value val = vector::ExtractOp::create(rewriter, loc, vals, indices);
       triton::StoreOp::create(rewriter, loc, ptr, val, Value(), cachePolicy,
-                                  UnitAttr());
+                              UnitAttr());
     };
 
     int64_t numElems = tensorTy.getNumElements();

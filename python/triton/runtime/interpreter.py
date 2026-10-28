@@ -894,8 +894,7 @@ class InterpreterBuilder:
         desc.validate()
         return desc
 
-    def create_descriptor_load(self, desc: TensorDescHandle, indices: List[TensorHandle], cache_policy,
-                               multicast=None):
+    def create_descriptor_load(self, desc: TensorDescHandle, indices: List[TensorHandle], cache_policy, multicast=None):
         assert isinstance(desc, TensorDescHandle)
         ptrs, mask = desc.materialize_pointers(indices)
         dtype_tt = ptrs.get_element_ty()
