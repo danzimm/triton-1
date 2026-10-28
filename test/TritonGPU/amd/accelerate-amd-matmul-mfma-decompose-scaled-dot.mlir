@@ -115,7 +115,7 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
     // CHECK-NOT: arith.shrui
     // CHECK-NOT: arith.andi
     // CHECK: %[[SHS:.*]] = arith.shli %[[ES]]
-    // CHECK: tt.bitcast %[[SHS]] : tensor<4x32xi16, #ttg.slice<{dim = 1, parent = #blocked{{.*}}}>> -> tensor<4x32xbf16, #ttg.slice<{dim = 1, parent = #blocked{{.*}}}>>
+    // CHECK: tt.bitcast %[[SHS]] : tensor<4x32xi16, #linear{{.*}}> -> tensor<4x32xbf16, #linear{{.*}}>
     %cst = arith.constant dense<0.000000e+00> : tensor<32x32xf32, #blocked>
     %1 = tt.load %arg0 : tensor<32x64x!tt.ptr<bf16>, #blocked2>
     %2 = tt.load %arg1 : tensor<32x32x!tt.ptr<i8>, #blocked>
