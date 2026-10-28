@@ -50,7 +50,7 @@ module {
 // CHECK-DAG: %[[VAL23:.*]] = tt.broadcast %[[VAL22]] : tensor<1x128xi1> -> tensor<128x128xi1>
 // CHECK-DAG: %[[VAL24:.*]] = arith.andi %[[VAL19]], %[[VAL23]]
 
-// CHECK-DAG: %[[VAL25:.*]] = tt.load %[[VAL15]], %[[VAL24]], %[[CST]] {cachePolicy = #tt.cache_policy<cache_modifier = cg, eviction_policy = evict_last>}
+// CHECK-DAG: %[[VAL25:.*]] = tt.load %[[VAL15]], %[[VAL24]], %[[CST]] {cachePolicy = #tt.cache_policy<cache_modifier = cg, eviction_policy = evict_last>, multicast = false}
 // CHECK: tt.return %[[VAL25]] :
 
 // -----

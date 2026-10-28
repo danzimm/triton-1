@@ -559,8 +559,9 @@ struct LoadOpConversion : public ConvertOpToLLVMPattern<triton::LoadOp>,
       return failure();
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
-    if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
-      evict = policyAttr.getEvictionPolicy();
+    if (op.getCachePolicyAttr())
+      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+        evict = policyAttr.getEvictionPolicy();
     auto loc = op->getLoc();
     auto b = TritonLLVMOpBuilder(loc, rewriter);
     // original values
@@ -670,8 +671,9 @@ struct BufferLoadOpConversion
       return failure();
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
-    if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
-      evict = policyAttr.getEvictionPolicy();
+    if (op.getCachePolicyAttr())
+      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+        evict = policyAttr.getEvictionPolicy();
     auto loc = op->getLoc();
     auto b = TritonLLVMOpBuilder(loc, rewriter);
     LLVM::AMD::BufferEmitter bufferEmitter(rewriter, loc, targetInfo);
@@ -771,8 +773,9 @@ struct BufferLoadToLocalOpConversion
       return failure();
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
-    if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
-      evict = policyAttr.getEvictionPolicy();
+    if (op.getCachePolicyAttr())
+      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+        evict = policyAttr.getEvictionPolicy();
     auto cacheMod = *cacheModifier;
     auto loc = op->getLoc();
     auto b = TritonLLVMOpBuilder(loc, rewriter);
@@ -963,8 +966,9 @@ struct AsyncCopyGlobalToLocalOpConversion
       return failure();
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
-    if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
-      evict = policyAttr.getEvictionPolicy();
+    if (op.getCachePolicyAttr())
+      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+        evict = policyAttr.getEvictionPolicy();
     auto loc = op.getLoc();
     auto b = TritonLLVMOpBuilder(loc, rewriter);
 
@@ -1178,8 +1182,9 @@ struct AsyncCopyLocalToGlobalOpConversion
       return failure();
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
-    if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
-      evict = policyAttr.getEvictionPolicy();
+    if (op.getCachePolicyAttr())
+      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+        evict = policyAttr.getEvictionPolicy();
 
     // Only supported on GFX1250
     if (targetInfo.getISAFamily() != ISAFamily::GFX1250) {
@@ -1806,8 +1811,9 @@ struct StoreOpConversion : public ConvertOpToLLVMPattern<triton::StoreOp>,
       return failure();
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
-    if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
-      evict = policyAttr.getEvictionPolicy();
+    if (op.getCachePolicyAttr())
+      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+        evict = policyAttr.getEvictionPolicy();
     Value ptr = op.getPtr();
     Value value = op.getValue();
     Value mask = op.getMask();
@@ -2163,8 +2169,9 @@ struct BufferStoreOpConversion
       return failure();
     }
     triton::EvictionPolicy evict = triton::EvictionPolicy::NORMAL;
-    if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
-      evict = policyAttr.getEvictionPolicy();
+    if (op.getCachePolicyAttr())
+      if (auto policyAttr = dyn_cast<triton::CachePolicyAttr>(op.getCachePolicyAttr()))
+        evict = policyAttr.getEvictionPolicy();
     auto loc = op->getLoc();
     auto b = TritonLLVMOpBuilder(loc, rewriter);
     LLVM::AMD::BufferEmitter bufferEmitter(rewriter, loc, targetInfo);
