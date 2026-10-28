@@ -153,7 +153,7 @@ where = builtin(tl_core.where)
 
 @builtin
 def load(pointer, mask=None, other=None, *, cache_modifier=None, eviction_policy=None, volatile=False,
-         cache_policy=None, _semantic=None):
+         cache_policy=None, latency=None, _semantic=None):
     """Load from memory, optionally using a cache policy."""
     mask = _unwrap_if_constexpr(mask)
     other = _unwrap_if_constexpr(other)
@@ -162,8 +162,9 @@ def load(pointer, mask=None, other=None, *, cache_modifier=None, eviction_policy
     if other is not None:
         other = _semantic.to_tensor(other)
     volatile = _unwrap_if_constexpr(volatile)
+    latency = _unwrap_if_constexpr(latency)
     cache_policy = _normalize_cache_policy(cache_policy, cache_modifier, eviction_policy)
-    return _semantic.load(pointer, mask, other, cache_policy, volatile)
+    return _semantic.load(pointer, mask, other, cache_policy, volatile, latency)
 
 
 @builtin
