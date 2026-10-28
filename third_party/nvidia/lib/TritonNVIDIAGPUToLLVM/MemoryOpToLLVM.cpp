@@ -353,7 +353,8 @@ struct AsyncRemoteShmemReduceOpConversion
         toLinearLayout(regTy).removeZeroBasesAlongDim(str_attr("register"));
     auto [physicalRegLayout, sharedLayout] =
         getPhysicalLayouts(regLayout, dstTy);
-    auto cvt = invertAndComposeBlockLocal(sharedLayout, physicalRegLayout);
+    auto kBlock = str_attr("block");
+    auto cvt = invertAndComposeLocal(sharedLayout, physicalRegLayout, {kBlock});
     auto vals = unpackUniqueTensorElements(loc, adaptor.getSrc(), rewriter);
 
     auto barrierTy = cast<MemDescType>(op.getBarrier().getType());
