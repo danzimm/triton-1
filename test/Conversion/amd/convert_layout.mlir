@@ -228,16 +228,16 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
   // Fresh scratch has no preceding reads to order before its first stores.
   // The producer-to-consumer wave barrier is still required.
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-NOT: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_fresh(%a: tensor<64x128xbf16, #src>, %out: tensor<64x128x!tt.ptr<bf16>, #dst>) {
     %x = ttg.convert_layout %a : tensor<64x128xbf16, #src> -> tensor<64x128xbf16, #dst>
@@ -247,20 +247,20 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
 
   // CHECK-LABEL: llvm.func @warp_local_scratch_reuse_after_cta_barrier
   // The explicit CTA barrier already releases the first scratch image.
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_reuse_after_cta_barrier(%a: tensor<64x128xbf16, #src>, %b: tensor<64x128xbf16, #src>, %out: tensor<64x128x!tt.ptr<bf16>, #dst>) {
@@ -280,24 +280,24 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
   // CHECK-NEXT: llvm.fence syncscope("workgroup") release
   // CHECK-NEXT: rocdl.s.barrier
   // CHECK-NEXT: llvm.fence syncscope("workgroup") acquire
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_reuse_after_async_wait(%a: tensor<64x128xbf16, #src>, %b: tensor<64x128xbf16, #src>, %out: tensor<64x128x!tt.ptr<bf16>, #dst>) {
@@ -314,28 +314,28 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
   // Only the second exchange has preceding scratch reads to order before its
   // stores. Both exchanges still order their stores before their own reads.
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-NOT: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-NOT: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-NOT: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_reuse_same_partition(%a: tensor<64x128xbf16, #src>, %b: tensor<64x128xbf16, #src>, %out: tensor<64x128x!tt.ptr<bf16>, #dst>) {
     %x = ttg.convert_layout %a : tensor<64x128xbf16, #src> -> tensor<64x128xbf16, #dst>
@@ -375,20 +375,20 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
   // CHECK-LABEL: llvm.func @warp_local_scratch_reuse_reject_different_layout
   // Both are intra-wave, but equality of their physical partitions is not
   // inferred from that fact alone. Different tensor encodings stay conservative.
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_reuse_reject_different_layout(%a: tensor<64x128xbf16, #src>, %b: tensor<64x128xbf16, #src>, %out: tensor<64x128x!tt.ptr<bf16>, #dst>, %other_out: tensor<64x128x!tt.ptr<bf16>, #other>) {
@@ -407,20 +407,20 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
 module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.target = "hip:gfx942", "ttg.threads-per-warp" = 64 : i32} {
   // CHECK-LABEL: llvm.func @warp_local_scratch_reuse_reject_cross_block
   // No cross-block proof is claimed, even for an unconditional edge.
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_reuse_reject_cross_block(%a: tensor<64x128xbf16, #src>, %b: tensor<64x128xbf16, #src>, %out: tensor<64x128x!tt.ptr<bf16>, #dst>) {
@@ -442,12 +442,12 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
   // CHECK-LABEL: llvm.func @warp_local_scratch_reuse_reject_backedge
   // A self dependency from the backedge remains a CTA dependency.
   // CHECK: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_reuse_reject_backedge(%a: tensor<64x128xbf16, #src>, %out: tensor<64x128x!tt.ptr<bf16>, #dst>, %again: i1) {
@@ -464,23 +464,23 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
   // The backedge needs a CTA barrier before the first conversion. The second
   // conversion only needs a wave fence, including when Membar is run again.
   // CHECK: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-NOT: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_reuse_loop(%a: tensor<64x128xbf16, #src>, %b: tensor<64x128xbf16, #src>, %out: tensor<64x128x!tt.ptr<bf16>, #dst>, %again: i1) {
@@ -506,28 +506,28 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
   // Only scratch reuse needs a leading wave fence; each exchange still needs
   // its store-to-load fence, without a CTA barrier.
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-NOT: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-NOT: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-NOT: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_reuse_same_partition_fp32(%a: tensor<64x64xf32, #src>, %b: tensor<64x64xf32, #src>, %out: tensor<64x64x!tt.ptr<f32>, #dst>) {
     %x = ttg.convert_layout %a : tensor<64x64xf32, #src> -> tensor<64x64xf32, #dst>
@@ -546,20 +546,20 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
   // CHECK-LABEL: llvm.func @warp_local_scratch_reuse_reject_broadcast
   // A zero register basis repeats every element. The exchanges remain wave-local
   // and reuse the same full 16 KiB interval, but the layouts are non-injective.
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_reuse_reject_broadcast(%a: tensor<64x128xbf16, #src>, %b: tensor<64x128xbf16, #src>, %out: tensor<64x128x!tt.ptr<bf16>, #dst>) {
@@ -580,24 +580,24 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
   // A single conversion reuses the scratch tile twice. Its second repetition
   // still orders the first repetition's reads before overwriting the tile.
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-NOT: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-NOT: rocdl.s.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_multiple_repetitions(%a: tensor<64x256xbf16, #src>, %out: tensor<64x256x!tt.ptr<bf16>, #dst>) {
     %x = ttg.convert_layout %a : tensor<64x256xbf16, #src> -> tensor<64x256xbf16, #dst>
@@ -622,19 +622,19 @@ module attributes {"ttg.num-ctas" = 1 : i32, "ttg.num-warps" = 4 : i32, ttg.targ
   // ALLOC: ttg.local_dealloc
   // ALLOC: ttg.convert_layout{{.*}}allocation.offset = 0
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.store {{.*}}!llvm.ptr<3>
-  // CHECK: rocdl.wave.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK: wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK-COUNT-4: llvm.load {{.*}}!llvm.ptr<3>
   // CHECK-NOT: rocdl.s.barrier
-  // CHECK-NOT: rocdl.wave.barrier
+  // CHECK-NOT: wave.barrier
   // CHECK: llvm.return
   tt.func @warp_local_scratch_disjoint_intervals(%a: tensor<64x128xbf16, #src>, %b: tensor<64x128xbf16, #src>, %out: tensor<64x128x!tt.ptr<bf16>, #dst>) {
     %buffer = ttg.local_alloc : () -> !ttg.memdesc<2x64x64xbf16, #shared, #smem, mutable>
